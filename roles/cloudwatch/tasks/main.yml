@@ -1,1 +1,4 @@
-ss
+---
+- name: CloudWatch role placeholder – to unblock nginx/ssl testing
+  debug:
+    msg: "CloudWatch will be completed by the observability team – skipping real tasks for now"

@@ -1,0 +1,4 @@
+domain: staging.yourteamdomain.com   # or prod domain
+app_port: 3000                       # or 5000, 8000, etc.
+project_name: your-project-name      # e.g., momento, telex, etc.
+env_name: staging                    # or production

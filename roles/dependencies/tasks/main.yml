@@ -1,1 +1,13 @@
-jeje
+---
+- name: Install system dependencies
+  apt:
+    name:
+      - nginx
+      - git
+      - python3-pip
+      - python3-setuptools
+      - curl
+      - gnupg
+      - software-properties-common
+    state: present
+    update_cache: yes

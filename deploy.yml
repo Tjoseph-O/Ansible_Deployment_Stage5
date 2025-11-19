@@ -1,1 +1,14 @@
-hhdhhdh
+---
+- name: Universal Multi-Environment Deployment
+  hosts: all
+  become: yes
+  vars_files:
+    - group_vars/all/vars.yml
+    - "{{ inventory_dir }}/../group_vars/{{ env_name | default('staging') }}/vars.yml"
+
+  roles:
+    - dependencies
+    - app-deployment
+    - nginx
+    - ssl
+    - cloudwatch

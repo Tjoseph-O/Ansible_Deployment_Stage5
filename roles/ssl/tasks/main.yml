@@ -1,1 +1,42 @@
-jdjjdjd
+---
+- name: Install Certbot
+  apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+    update_cache: yes
+
+- name: Generate or renew Let's Encrypt certificate
+  command: >
+    certbot --nginx --non-interactive --agree-tos
+    --email {{ ssl_email | default('admin@yourdomain.com') }}
+    -d {{ domain }}
+  args:
+    creates: /etc/letsencrypt/live/{{ domain }}/fullchain.pem
+  notify: Reload Nginx
+
+- name: Ensure Certbot renewal cron job exists
+  cron:
+    name: "Certbot auto-renew"
+    job: "/usr/bin/certbot renew --quiet && systemctl reload nginx"
+    minute: "0"
+    hour: "3,15"
+    weekday: "*"
+  # Runs twice daily at 3 AM & 3 PM
+
+- name: Force HTTPS redirection via Certbot (if not already done)
+  command: certbot --nginx -d {{ domain }} --redirect --non-interactive --agree-tos
+  args:
+    creates: /etc/letsencrypt/live/{{ domain }}/fullchain.pem
+  ignore_errors: yes  # idempotent, might already be set
+  notify: Reload Nginx
+
+- name: Test SSL certificate is valid and not expired
+  uri:
+    url: https://{{ domain }}
+    validate_certs: yes
+    follow_redirects: safe
+  register: ssl_test
+  failed_when: ssl_test.status != 200
+  delegate_to: localhost

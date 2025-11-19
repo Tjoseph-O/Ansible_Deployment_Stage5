@@ -1,0 +1,4 @@
+---
+- name: Placeholder for app deployment
+  debug:
+    msg: "App deployment role will be completed by the app team – this is just to unblock nginx/ssl testing"
