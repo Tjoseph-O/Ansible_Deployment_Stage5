@@ -1,0 +1,12 @@
+env_name: "prod"
+
+cloudwatch_logs:
+  app:
+    log_group: "/ec2/prod/telex/backend"
+    files:
+      - "/var/www/telex/logs/app.log"   
+  nginx:
+    log_group: "/ec2/prod/telex/nginx"
+    files:
+      - "/var/log/nginx/access.log"
+      - "/var/log/nginx/error.log"

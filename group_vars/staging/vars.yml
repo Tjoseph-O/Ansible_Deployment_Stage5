@@ -1,0 +1,12 @@
+env_name: "staging"
+
+cloudwatch_logs:
+  app:
+    log_group: "/ec2/staging/telex/backend"
+    files:
+      - "/var/www/telex/logs/app.log"   
+  nginx:
+    log_group: "/ec2/staging/telex/nginx"
+    files:
+      - "/var/log/nginx/access.log"
+      - "/var/log/nginx/error.log"
