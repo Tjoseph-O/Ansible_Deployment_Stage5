@@ -1,1 +1,64 @@
-ss
+---
+#Install Dependencies
+- name: Ensure dependencies for download/install exist
+  become: true
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - curl
+    - tar
+  when: ansible_os_family in ['RedHat','Debian','Amazon']
+
+#Download CloudWatch Agent
+- name: Download CloudWatch agent package
+  become: true
+  get_url:
+    url: "https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
+    dest: /tmp/amazon-cloudwatch-agent.deb
+    mode: '0644'
+  when: ansible_pkg_mgr == 'apt'
+  register: cw_download
+
+#Install CloudWatch Agent
+- name: Install CloudWatch agent (.deb)
+  become: true
+  apt:
+    deb: /tmp/amazon-cloudwatch-agent.deb
+  when: ansible_pkg_mgr == 'apt' and cw_download is changed
+
+#Create config directory
+- name: Create CloudWatch config directory
+  become: true
+  file:
+    path: /opt/aws/amazon-cloudwatch-agent/etc
+    state: directory
+    mode: '0755'
+
+#Deploy CloudWatch Jinja2 Config
+- name: Deploy CloudWatch agent configuration
+  become: true
+  template:
+    src: amazon-cloudwatch-agent.json.j2
+    dest: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+    mode: '0644'
+
+#Apply Config + Start Agent
+- name: Apply CloudWatch agent config
+  become: true
+  command: >
+    /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl
+    -a fetch-config
+    -m ec2
+    -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+    -s
+  register: cw_start
+  changed_when: "'success' in cw_start.stdout or cw_start.rc == 0"
+
+#Enable & Start Service
+- name: Ensure CloudWatch agent is enabled & running
+  become: true
+  systemd:
+    name: amazon-cloudwatch-agent
+    enabled: yes
+    state: started
